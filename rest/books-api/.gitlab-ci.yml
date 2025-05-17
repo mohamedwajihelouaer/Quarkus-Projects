@@ -1,0 +1,47 @@
+stages:
+  - build
+  - test
+
+variables:
+  # Instruct Testcontainers to use the DinD daemon
+  DOCKER_HOST: "tcp://docker:2375"
+  # Disable TLS to avoid Docker startup issues
+  DOCKER_TLS_CERTDIR: ""
+  # Override Testcontainers host for GitLab CI
+  TESTCONTAINERS_HOST_OVERRIDE: "host.docker.internal"
+  # Improve performance with overlayfs
+  DOCKER_DRIVER: overlay2
+
+# Cache Maven dependencies to speed up builds
+cache:
+  key: "${CI_COMMIT_REF_NAME}"
+  paths:
+    - .m2/repository
+
+# Build stage: Compile and package the application
+build:
+  stage: build
+  image: maven:3.8.6-openjdk-17
+  script:
+    - mvn clean package -DskipTests
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 1 week
+
+# Test stage: Run unit and integration tests with Testcontainers
+test:
+  stage: test
+  image: maven:3.8.6-openjdk-17
+  services:
+    - name: docker:dind
+      command: [ "--tls=false" ] # Explicitly disable TLS to avoid startup delay
+  script:
+    - mvn verify -Dparallel=classes -DthreadCount=4
+  artifacts:
+    paths:
+      - target/surefire-reports/
+      - target/testcontainers.log
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
+    expire_in: 1 week
