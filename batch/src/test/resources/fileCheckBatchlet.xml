@@ -1,0 +1,10 @@
+<job id="fileCheckBatchlet" xmlns="http://xmlns.jcp.org/xml/ns/javaee" version="1.0">
+    <step id="step">
+        <batchlet ref="fileCheckBatchlet">
+<!--            <properties>-->
+<!--                <property name="toProcessDir" value="#{jobParameters['name']}"/>-->
+<!--                <property name="processing" value="#{jobParameters['name']}"/>-->
+<!--            </properties>-->
+        </batchlet>
+    </step>
+</job>
